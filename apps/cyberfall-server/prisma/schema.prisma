@@ -1,0 +1,95 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Website {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  name          String?
+  url           String?
+  scanReports   ScanReport[]
+  threats       Threat[]
+  firewallRules FirewallRule[]
+  user          User?          @relation(fields: [userId], references: [id])
+  userId        String?        @db.ObjectId
+  tenant        Tenant?        @relation(fields: [tenantId], references: [id])
+  tenantId      String?        @db.ObjectId
+}
+
+model ScanReport {
+  id        String                @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+  findings  String?
+  status    EnumScanReportStatus?
+  website   Website?              @relation(fields: [websiteId], references: [id])
+  websiteId String?               @db.ObjectId
+  tenant    Tenant?               @relation(fields: [tenantId], references: [id])
+  tenantId  String?               @db.ObjectId
+}
+
+model Threat {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  description String?
+  level       EnumThreatLevel?
+  mitigated   Boolean?
+  website     Website?         @relation(fields: [websiteId], references: [id])
+  websiteId   String?          @db.ObjectId
+  tenant      Tenant?          @relation(fields: [tenantId], references: [id])
+  tenantId    String?          @db.ObjectId
+}
+
+model FirewallRule {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ruleName    String?
+  ruleDetails String?
+  website     Website? @relation(fields: [websiteId], references: [id])
+  websiteId   String?  @db.ObjectId
+  tenant      Tenant?  @relation(fields: [tenantId], references: [id])
+  tenantId    String?  @db.ObjectId
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  firstName String?
+  lastName  String?
+  username  String    @unique
+  email     String?   @unique
+  password  String
+  roles     Json
+  websites  Website[]
+  tenant    Tenant?   @relation(fields: [tenantId], references: [id])
+  tenantId  String?   @db.ObjectId
+}
+
+model Tenant {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  name          String?
+  websites      Website[]
+  scanReports   ScanReport[]
+  users         User[]
+  threats       Threat[]
+  firewallRules FirewallRule[]
+}
+
+enum EnumScanReportStatus {
+  Option1
+}
+
+enum EnumThreatLevel {
+  Option1
+}
